@@ -4,7 +4,6 @@
 #
 # Copyright (c) 2013 Nyr. Released under the MIT License.
 
-POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -34,18 +33,14 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    POSITIONAL+=("$1") # save it in an array for later
-    shift # past argument
-    ;;
 esac
 done
-set -- "${POSITIONAL[@]}" # restore positional parameters
 
-echo "INTERACTIVE	  = ${INTERACTIVE}"
-echo "CLIENT NAME     = ${CLIENT_NAME}"
-if [ "$INTERACTIVE" == "YES"]; then
-	echo "PORT		 	 = ${port}"
-	echo "PROTOCOL	 	 = ${protocol} (1=udp, 2=tcp)"
+echo "INTERACTIVE       = ${INTERACTIVE}"
+echo "CLIENT NAME       = ${CLIENT_NAME}"
+if [ "$INTERACTIVE" == "YES" ]; then
+	echo "PORT              = ${port}"
+	echo "PROTOCOL          = ${protocol} (1=udp, 2=tcp)"
 fi
 echo ""
 
@@ -143,7 +138,7 @@ new_client () {
 }
 
 if [[ ! -e /etc/openvpn/server/server.conf ]]; then
-	if [ "$INTERACTIVE" == "YES"]; then
+	if [ "$INTERACTIVE" == "YES" ]; then
 		clear
 		echo 'Welcome to this OpenVPN road warrior installer!'
 	fi
@@ -157,7 +152,7 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 		echo "Which IPv4 address should be used?"
 		ip -4 addr | grep inet | grep -vE '127(\.[0-9]{1,3}){3}' | cut -d '/' -f 1 | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | nl -s ') '
 		
-		if [ "$INTERACTIVE" == "YES"]; then
+		if [ "$INTERACTIVE" == "YES" ]; then
 			read -p "IPv4 address [1]: " ip_number
 			until [[ -z "$ip_number" || "$ip_number" =~ ^[0-9]+$ && "$ip_number" -le "$number_of_ip" ]]; do
 				echo "$ip_number: invalid selection."
@@ -177,7 +172,7 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 		# Get public IP and sanitize with grep
 		get_public_ip=$(grep -m 1 -oE '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' <<< "$(wget -T 10 -t 1 -4qO- "http://ip1.dynupdate.no-ip.com/" || curl -m 10 -4Ls "http://ip1.dynupdate.no-ip.com/")")
 		
-		if [ "$INTERACTIVE" == "YES"]; then
+		if [ "$INTERACTIVE" == "YES" ]; then
 			read -p "Public IPv4 address / hostname [$get_public_ip]: " public_ip
 			# If the checkip service is unavailable and user didn't provide input, ask again
 			until [[ -n "$get_public_ip" || -n "$public_ip" ]]; do
@@ -201,7 +196,7 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 		echo "Which IPv6 address should be used?"
 		ip -6 addr | grep 'inet6 [23]' | cut -d '/' -f 1 | grep -oE '([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}' | nl -s ') '
 		
-		if [ "$INTERACTIVE" == "YES"]; then
+		if [ "$INTERACTIVE" == "YES" ]; then
 			read -p "IPv6 address [1]: " ip6_number
 			until [[ -z "$ip6_number" || "$ip6_number" =~ ^[0-9]+$ && "$ip6_number" -le "$number_of_ip6" ]]; do
 				echo "$ip6_number: invalid selection."
@@ -218,7 +213,7 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 	echo "Which protocol should OpenVPN use?"
 	echo "   1) UDP (recommended)"
 	echo "   2) TCP"
-	if [ "$INTERACTIVE" == "YES"]; then
+	if [ "$INTERACTIVE" == "YES" ]; then
 		protocol=1
 		read -p "Protocol [1]: " protocol
 		until [[ -z "$protocol" || "$protocol" =~ ^[12]$ ]]; do
@@ -234,13 +229,13 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 		protocol=tcp
 		;;
 	esac
-	if [ "$INTERACTIVE" == "NO"]; then
+	if [ "$INTERACTIVE" != "YES" ]; then
 		echo "NON-INTERACTIVE: Using protocol [$protocol]"
 	fi
 
 	echo
 	echo "What port should OpenVPN listen to?"
-	if [ "$INTERACTIVE" == "YES"]; then
+	if [ "$INTERACTIVE" == "YES" ]; then
 		port=0
 		read -p "Port [1194]: " port
 		until [[ -z "$port" || "$port" =~ ^[0-9]+$ && "$port" -le 65535 ]]; do
@@ -261,7 +256,7 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 	echo "   4) OpenDNS"
 	echo "   5) Quad9"
 	echo "   6) AdGuard"
-	if [ "$INTERACTIVE" == "YES"]; then
+	if [ "$INTERACTIVE" == "YES" ]; then
 		read -p "DNS server [1]: " dns
 		until [[ -z "$dns" || "$dns" =~ ^[1-6]$ ]]; do
 			echo "$dns: invalid selection."
@@ -274,7 +269,7 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 	echo
 	echo "Enter a name for the first client:"
 
-	if [ "$INTERACTIVE" == "YES"]; then
+	if [ "$INTERACTIVE" == "YES" ]; then
 		read -p "Name [client]: " unsanitized_client
 	else
 		unsanitized_client="$CLIENT_NAME"
@@ -284,7 +279,7 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 	client=$(sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g' <<< "$unsanitized_client")
 	[[ -z "$client" ]] && client="client"
 
-	if [ "$INTERACTIVE" != "YES"]; then
+	if [ "$INTERACTIVE" != "YES" ]; then
 		echo "NON-INTERACTIVE: Using client name [$client]"
 	fi
 
@@ -303,7 +298,7 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 		fi
 	fi
 
-	if [ "$INTERACTIVE" == "YES"]; then
+	if [ "$INTERACTIVE" == "YES" ]; then
 		read -n1 -r -p "Press any key to continue..."
 	fi
 	# If running inside a container, disable LimitNPROC to prevent conflicts
